@@ -347,30 +347,44 @@ def populate_db_with_test_data():
 
     delta_day_it = 24 * 60 * 60
 
-    QuestionM.add(QuestionSetupEnum.gratitude.name.capitalize(), "What posivite things came my way today? What did i do to water the seeds of joy in myself today?")
-    QuestionM.add(QuestionSetupEnum.practice.name.capitalize(), "What practices did i do today? Sitting meditation? Walking meditation? Gathas?")
-    QuestionM.add(QuestionSetupEnum.livelihood.name.capitalize(), "How did i contribute today to the well-being on others? On a personal plane? In a long-term way?")
-    QuestionM.add(QuestionSetupEnum.study.name.capitalize(), "What did i read and listen to today and learn? Professionally? Dharma?")
+    QuestionM.add(
+        QuestionSetupEnum.gratitude.name.capitalize(),
+        "What posivite things came my way today? What did i do to water the seeds of joy in myself today?")
+    QuestionM.add(
+        QuestionSetupEnum.practice.name.capitalize(),
+        "What practices did i do today? Sitting meditation? Walking meditation? Gathas?")
+    QuestionM.add(
+        QuestionSetupEnum.livelihood.name.capitalize(),
+        "How did i contribute today to the well-being on others? On a personal plane? In a long-term way?")
+    QuestionM.add(
+        QuestionSetupEnum.study.name.capitalize(),
+        "What did i read and listen to today and learn? Professionally? Dharma?")
 
-    DiaryM.add(time.time(),
+    DiaryM.add(
+        time.time(),
         "Dear Buddha, today i was practicing sitting meditation before meeting a friend of mine to be able to be more present during our meeting",
         QuestionSetupEnum.practice.value)
-    DiaryM.add(time.time(),
+    DiaryM.add(
+        time.time(),
         "Dear Buddha, i'm grateful for being able to breathe!",
         QuestionSetupEnum.gratitude.value)
     DiaryM.add(time.time() - delta_day_it,
         "Most difficult today was my negative thinking, practicing with this by changing the peg from negative thoughts to positive thinking",
         QuestionSetupEnum.practice.value)
-    DiaryM.add(time.time() - 7 * delta_day_it,
+    DiaryM.add(
+        time.time() - 7 * delta_day_it,
         "Grateful for having a place to live, a roof over my head, food to eat, and people to care for",
         QuestionSetupEnum.gratitude.value)
-    DiaryM.add(time.time() - 7 * delta_day_it,
+    DiaryM.add(
+        time.time() - 7 * delta_day_it,
         "Grateful for the blue sky and the white clouds",
         QuestionSetupEnum.gratitude.value)
-    DiaryM.add(time.time() - 3 * delta_day_it,
+    DiaryM.add(
+        time.time() - 3 * delta_day_it,
         "Dear Buddha, today i read about the four foundations of mindfulness. Some important parts: 1. Body 2. Feelings 3. Mind 4. Objects of mind",
         QuestionSetupEnum.study.value)
-    DiaryM.add(time.time() - 4 * delta_day_it,
+    DiaryM.add(
+        time.time() - 4 * delta_day_it,
         "Programming and working on the application. Using Python and Qt",
         QuestionSetupEnum.livelihood.value)
 
