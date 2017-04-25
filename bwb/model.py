@@ -4,7 +4,6 @@ import shutil
 import sqlite3
 import time
 import enum
-from typing import List
 
 import bwb.bwbglobal
 
@@ -39,6 +38,7 @@ class QuestionSetupEnum(enum.Enum):
     livelihood = 3
     study = 4
 
+
 def get_schema_version(i_db_conn):
     t_cursor = i_db_conn.execute("PRAGMA user_version")
     return t_cursor.fetchone()[0]
@@ -71,6 +71,13 @@ def initial_schema_and_setup(i_db_conn):
         + ")"
     )
 
+    i_db_conn.execute(
+        "CREATE TABLE " + DbSchemaM.ReminderTable.name + "("
+        + DbSchemaM.ReminderTable.Cols.id + " INTEGER PRIMARY KEY, "
+        + DbSchemaM.ReminderTable.Cols.title + " TEXT DEFAULT '', "
+        + DbSchemaM.ReminderTable.Cols.reminder + " TEXT DEFAULT ''"
+        + ")"
+    )
 
     populate_db_with_test_data()
 
@@ -128,13 +135,6 @@ class DbSchemaM:
             question = "question"
             archived = "archived"
 
-    class TagTable:
-        name = "tag"
-
-        class Cols:
-            id = "id"  # key
-            name = "name"
-
     class DiaryTable:
         name = "diary"
 
@@ -143,6 +143,14 @@ class DbSchemaM:
             date_added = "date_added"
             diary_text = "diary_text"
             question_ref = "journal_ref"
+
+    class ReminderTable:
+        name = "reminder"
+
+        class Cols:
+            id = "id"  # key
+            title = "title"
+            reminder = "reminder"
 
 
 class QuestionM:
@@ -328,6 +336,63 @@ class DiaryM:
         return ret_diary_list
 
 
+class ReminderM:
+    def __init__(self, i_id_int: int, i_title_str: str, i_reminder_str: str) -> None:
+        self.id_int = i_id_int
+        self.title_str = i_title_str
+        self.reminder_str = i_reminder_str
+
+    @staticmethod
+    def add(i_title_str: str, i_reminder_str: str) -> None:
+        db_connection = DbHelperM.get_db_connection()
+        db_cursor = db_connection.cursor()
+        db_cursor.execute(
+            "INSERT INTO " + DbSchemaM.ReminderTable.name + "("
+            + DbSchemaM.ReminderTable.Cols.title + ", "
+            + DbSchemaM.ReminderTable.Cols.reminder
+            + ") VALUES (?, ?)", (i_title_str, i_reminder_str)
+        )
+
+        db_connection.commit()
+
+    @staticmethod
+    def get(i_id_int: int):
+        db_connection = DbHelperM.get_db_connection()
+        db_cursor = db_connection.cursor()
+        db_cursor_result = db_cursor.execute(
+            "SELECT * FROM " + DbSchemaM.ReminderTable.name
+            + " WHERE " + DbSchemaM.ReminderTable.Cols.id + "=" + str(i_id_int)
+        )
+        reminder_db_te = db_cursor_result.fetchone()
+        db_connection.commit()
+
+        return ReminderM(*reminder_db_te)
+
+    @staticmethod
+    def get_all():  # -TODO: Change to for just one month
+        ret_reminder_list = []
+        db_connection = DbHelperM.get_db_connection()
+        db_cursor = db_connection.cursor()
+        db_cursor_result = db_cursor.execute(
+            "SELECT * FROM " + DbSchemaM.ReminderTable.name
+        )
+        reminder_db_te_list = db_cursor_result.fetchall()
+        for diary_db_te in reminder_db_te_list:
+            ret_reminder_list.append(ReminderM(*diary_db_te))
+        db_connection.commit()
+        return ret_reminder_list
+
+    @staticmethod
+    def remove(i_id_int):
+        db_connection = DbHelperM.get_db_connection()
+        db_cursor = db_connection.cursor()
+        db_cursor.execute(
+            "DELETE FROM " + DbSchemaM.ReminderTable.name
+            + " WHERE " + DbSchemaM.ReminderTable.Cols.id + "=" + str(i_id_int)
+        )
+        db_connection.commit()
+
+
 def export_all():
     csv_writer = csv.writer(open("exported.csv", "w"))
     for diary_item in DiaryM.get_all():
@@ -387,4 +452,9 @@ def populate_db_with_test_data():
         time.time() - 4 * delta_day_it,
         "Programming and working on the application. Using Python and Qt",
         QuestionSetupEnum.livelihood.value)
+
+    ReminderM.add("Inter-being",
+        "All things in the universe inter-are, our suffernig and happiness, ___")
+    ReminderM.add("No Mud, no lotus",
+        "A lotus flower cannot grow on marble!")
 

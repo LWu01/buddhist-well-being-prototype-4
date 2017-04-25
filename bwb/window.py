@@ -12,6 +12,8 @@ import bwb.model
 import bwb.questions
 import bwb.wisdom
 import bwb.bwbglobal
+import bwb.quotes
+import bwb.reminders
 
 
 class EventSource(enum.Enum):
@@ -51,26 +53,43 @@ class WellBeingWindow(QtWidgets.QMainWindow):
         self.custom_calendar_w3.calendar_widget.currentPageChanged.connect(self.on_calendar_page_changed)
         calendar_dock_qdw2.setWidget(self.custom_calendar_w3)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, calendar_dock_qdw2)
-        # ..reminders
-        self.reminders_dock_qw2 = QtWidgets.QDockWidget("Journal Reminders", self)
-        self.reminders_dock_qw2.setFeatures(
+        # ..questions
+        self.questions_dock_qw2 = QtWidgets.QDockWidget("Journal Questions", self)
+        ### self.questions_dock_qw2.setWindowTitle("Daily questions")
+        self.questions_dock_qw2.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable |
             QtWidgets.QDockWidget.DockWidgetFloatable)
-        self.reminders_composite_w3 = bwb.questions.PracticeCompositeWidget()
-        self.reminders_composite_w3.item_selection_changed_signal.connect(self.on_practice_item_selection_changed)
-        self.reminders_composite_w3.current_row_changed_signal.connect(self.on_practice_current_row_changed)
-        self.reminders_dock_qw2.setWidget(self.reminders_composite_w3)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.reminders_dock_qw2)
+        self.questions_composite_w3 = bwb.questions.PracticeCompositeWidget()
+        self.questions_composite_w3.item_selection_changed_signal.connect(self.on_practice_item_selection_changed)
+        self.questions_composite_w3.current_row_changed_signal.connect(self.on_question_current_row_changed)
+        self.questions_dock_qw2.setWidget(self.questions_composite_w3)
+
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.questions_dock_qw2)
         # ..central widget (which **holds the diary** etc)
         self.central_widget_w3 = bwb.central.CompositeCentralWidget()
         self.setCentralWidget(self.central_widget_w3)
         self.central_widget_w3.journal_button_toggled_signal.connect(self.update_gui)
         # ..wisdom
+        """
         wisdom_dock_qw2 = QtWidgets.QDockWidget("Wisdom", self)
         self.wisdom_composite_w3 = bwb.wisdom.WisdomCompositeWidget()
         wisdom_dock_qw2.setWidget(self.wisdom_composite_w3)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, wisdom_dock_qw2)
         wisdom_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        wisdom_dock_qw2.hide()
+        """
+        # ..quotes
+        quotes_dock_qw2 = QtWidgets.QDockWidget("Quotes", self)
+        self.quotes_composite_w3 = bwb.quotes.CompositeQuotesWidget()
+        quotes_dock_qw2.setWidget(self.quotes_composite_w3)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, quotes_dock_qw2)
+        quotes_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        # ..reminders
+        reminders_dock_qw2 = QtWidgets.QDockWidget("Reminders", self)
+        self.reminders_composite_w3 = bwb.reminders.CompositeRemindersWidget()
+        reminders_dock_qw2.setWidget(self.reminders_composite_w3)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, reminders_dock_qw2)
+        reminders_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
 
         # Creating the menu bar..
         # ..setup of actions
@@ -88,7 +107,7 @@ class WellBeingWindow(QtWidgets.QMainWindow):
         backup_qaction.triggered.connect(bwb.model.backup_db_file)
         dear_buddha_qaction = QtWidgets.QAction("Prepend diary entries with \"Dear Buddha\"", self)
         dear_buddha_qaction.triggered.connect(self.toggle_dear_buddha_text)
-        wisdom_window_qaction = wisdom_dock_qw2.toggleViewAction()
+        ### wisdom_window_qaction = wisdom_dock_qw2.toggleViewAction()
         # ..adding menu items
         self.menu_bar = self.menuBar()
         file_menu = self.menu_bar.addMenu("&File")
@@ -103,7 +122,7 @@ class WellBeingWindow(QtWidgets.QMainWindow):
         tools_menu.addAction(dear_buddha_qaction)
         help_menu.addAction(about_qaction)
         help_menu.addAction(manual_qaction)
-        window_menu.addAction(wisdom_window_qaction)
+        ### window_menu.addAction(wisdom_window_qaction)
 
         self.update_gui()
 
@@ -155,13 +174,12 @@ class WellBeingWindow(QtWidgets.QMainWindow):
     def on_practice_details_time_of_day_state_changed(self):
         self.update_gui(EventSource.practice_details)
 
-    def on_practice_current_row_changed(self, i_current_practice_row_it):
-        current_practice_qlistitem = self.reminders_composite_w3.list_widget.item(i_current_practice_row_it)
+    def on_question_current_row_changed(self, i_current_practice_row_it):
+        current_practice_qlistitem = self.questions_composite_w3.list_widget.item(i_current_practice_row_it)
         question_id_it = current_practice_qlistitem.data(QtCore.Qt.UserRole)
         bwb.bwbglobal.active_question_id_it = question_id_it
         question = bwb.model.QuestionM.get(question_id_it)
         self.central_widget_w3.question_label.setText(question.question_str)
-
 
         self.update_gui(EventSource.obs_current_row_changed)
 
@@ -188,6 +206,5 @@ class WellBeingWindow(QtWidgets.QMainWindow):
         self.custom_calendar_w3.update_gui()
 
         if i_event_source != EventSource.obs_current_row_changed:
-            self.reminders_composite_w3.update_gui()
+            self.questions_composite_w3.update_gui()
 
-        self.reminders_dock_qw2.setWindowTitle("Daily questions / rememberances")

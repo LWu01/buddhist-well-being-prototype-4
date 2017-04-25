@@ -194,4 +194,5 @@ class CustomQLabel(QtWidgets.QLabel):
     # Overridden
     # Please note that this is the event handler (not an event!)
     def mousePressEvent(self, i_qmouseevent):
+        ### super(CustomQLabel, self).mousePressEvent(i_qmouseevent)
         self.mouse_pressed_signal.emit(i_qmouseevent, self.diary_entry_id)

@@ -35,7 +35,7 @@ class PracticeCompositeWidget(QtWidgets.QWidget):
         hbox_l3 = QtWidgets.QHBoxLayout()
         vbox_l2.addLayout(hbox_l3)
         self.adding_new_practice_qle = QtWidgets.QLineEdit()
-        self.adding_new_practice_qle.setPlaceholderText("New reminder")
+        self.adding_new_practice_qle.setPlaceholderText("New question")
         hbox_l3.addWidget(self.adding_new_practice_qle)
         self.adding_new_practice_bn = QtWidgets.QPushButton("Add")
         hbox_l3.addWidget(self.adding_new_practice_bn)
@@ -51,7 +51,7 @@ class PracticeCompositeWidget(QtWidgets.QWidget):
         self.update_gui()
 
     def on_practice_new_button_pressed_signal(self, i_practice_text_sg):
-        bwb.model.ReminderM.add(i_practice_text_sg, bwb.bwb_global.active_journal_id_it)
+        bwb.model.QuestionM.add(i_practice_text_sg, "question unfilled")
         self.update_gui()
 
     def on_current_row_changed(self):
@@ -69,16 +69,6 @@ class PracticeCompositeWidget(QtWidgets.QWidget):
         self.item_selection_changed_signal.emit()
 
     def update_gui(self):
-        """
-        Signs to use for showing observance:
-        ☐ ☑ (Ballot ____, )
-        ✓
-        ◯ ⬤ (Large Circle, Black Large Circle)
-        ○ ● (White Circle, Black Circle (Please note that medium white/black cirlce is smaller than these))
-        More here:
-        https://unicode-table.com/en/blocks/geometric-shapes/
-        https://unicode-table.com/en/blocks/miscellaneous-symbols/
-        """
         self.list_widget.clear()
         counter = 0
         for question_item in bwb.model.QuestionM.get_all():
