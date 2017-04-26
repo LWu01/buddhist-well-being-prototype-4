@@ -78,18 +78,19 @@ class WellBeingWindow(QtWidgets.QMainWindow):
         wisdom_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
         wisdom_dock_qw2.hide()
         """
-        # ..quotes
-        quotes_dock_qw2 = QtWidgets.QDockWidget("Quotes", self)
-        self.quotes_composite_w3 = bwb.quotes.CompositeQuotesWidget()
-        quotes_dock_qw2.setWidget(self.quotes_composite_w3)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, quotes_dock_qw2)
-        quotes_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
         # ..reminders
         reminders_dock_qw2 = QtWidgets.QDockWidget("Reminders", self)
         self.reminders_composite_w3 = bwb.reminders.CompositeRemindersWidget()
         reminders_dock_qw2.setWidget(self.reminders_composite_w3)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, reminders_dock_qw2)
         reminders_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        reminders_dock_qw2.setFixedHeight(300)  # TODO: Change to dynamic
+        # ..quotes
+        quotes_dock_qw2 = QtWidgets.QDockWidget("Quotes", self)
+        self.quotes_composite_w3 = bwb.quotes.CompositeQuotesWidget()
+        quotes_dock_qw2.setWidget(self.quotes_composite_w3)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, quotes_dock_qw2)
+        quotes_dock_qw2.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
 
         # Creating the menu bar..
         # ..setup of actions

@@ -147,7 +147,7 @@ class DiaryListCompositeWidget(QtWidgets.QWidget):
                 old_date_str = date_str
             elif bwbglobal.active_view_viewenum == bwbglobal.ViewEnum.diary_daily_overview:
                 journalm = bwb.model.QuestionM.get(diary_entry.question_ref_it)
-                journal_sg = str(journalm.title_sg)
+                journal_sg = str(journalm.title_str)
                 left_qlabel = QtWidgets.QLabel(journal_sg)
             else:
                 pass

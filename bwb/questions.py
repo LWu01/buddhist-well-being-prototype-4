@@ -79,7 +79,7 @@ class PracticeCompositeWidget(QtWidgets.QWidget):
             row_i6 = QtWidgets.QListWidgetItem()
             row_layout_l7 = QtWidgets.QVBoxLayout()
 
-            row_label_w8 = QtWidgets.QLabel(question_item.title_sg)
+            row_label_w8 = QtWidgets.QLabel(question_item.title_str)
 
             row_label_w8.adjustSize()
             row_layout_l7.addWidget(row_label_w8)
@@ -91,7 +91,7 @@ class PracticeCompositeWidget(QtWidgets.QWidget):
             row_w6.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
             row_w6.adjustSize()
 
-            row_i6.setData(QtCore.Qt.UserRole, question_item.id_it)
+            row_i6.setData(QtCore.Qt.UserRole, question_item.id_int)
 
             #my_size = QtCore.QSize(-1, row_w6.height())
 

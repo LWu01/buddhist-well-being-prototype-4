@@ -26,7 +26,7 @@ class CompositeRemindersWidget(QtWidgets.QWidget):
         hbox = QtWidgets.QHBoxLayout()
         vbox.addLayout(hbox)
         self.adding_new_reminder_qle = QtWidgets.QLineEdit()
-        self.adding_new_reminder_qle.setPlaceholderText("New question")
+        self.adding_new_reminder_qle.setPlaceholderText("New reminder")
         hbox.addWidget(self.adding_new_reminder_qle)
         self.adding_new_reminder_bn = QtWidgets.QPushButton("Add")
         hbox.addWidget(self.adding_new_reminder_bn)

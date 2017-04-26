@@ -20,7 +20,7 @@ import bwb.bwbglobal
 #
 # Notes:
 # * When inserting vales, it's best to use "VALUES (?, ?)" because then the sqlite3 module will take care of
-#   escaping values for us
+#   escaping strings for us
 #
 #################
 
@@ -48,8 +48,9 @@ def set_schema_version(i_db_conn, i_version_it):
     i_db_conn.execute("PRAGMA user_version={:d}".format(i_version_it))
 
 
-# Auto-increment is not needed in our case: https://www.sqlite.org/autoinc.html
 def initial_schema_and_setup(i_db_conn):
+    """Auto-increment is not needed in our case: https://www.sqlite.org/autoinc.html
+    """
     i_db_conn.execute(
         "CREATE TABLE " + DbSchemaM.QuestionTable.name + "("
         + DbSchemaM.QuestionTable.Cols.id + " INTEGER PRIMARY KEY, "
@@ -60,11 +61,11 @@ def initial_schema_and_setup(i_db_conn):
     )
 
     i_db_conn.execute(
-        "CREATE TABLE " + DbSchemaM.DiaryTable.name + "("
-        + DbSchemaM.DiaryTable.Cols.id + " INTEGER PRIMARY KEY, "
-        + DbSchemaM.DiaryTable.Cols.date_added + " INTEGER, "
-        + DbSchemaM.DiaryTable.Cols.diary_text + " TEXT, "
-        + DbSchemaM.DiaryTable.Cols.question_ref
+        "CREATE TABLE " + DbSchemaM.DiaryEntryTable.name + "("
+        + DbSchemaM.DiaryEntryTable.Cols.id + " INTEGER PRIMARY KEY, "
+        + DbSchemaM.DiaryEntryTable.Cols.date_added + " INTEGER, "
+        + DbSchemaM.DiaryEntryTable.Cols.diary_entry + " TEXT, "
+        + DbSchemaM.DiaryEntryTable.Cols.question_ref
         + " INTEGER REFERENCES " + DbSchemaM.QuestionTable.name
         + "(" + DbSchemaM.QuestionTable.Cols.id + ")"
         + " NOT NULL"
@@ -100,8 +101,7 @@ upgrade_steps = {
 class DbHelperM(object):
     __db_connection = None  # "Static"
 
-    # def __init__(self):
-
+    # noinspection PyTypeChecker
     @staticmethod
     def get_db_connection():
         if DbHelperM.__db_connection is None:
@@ -111,9 +111,9 @@ class DbHelperM(object):
             # Very good upgrade explanation:
             # http://stackoverflow.com/questions/19331550/database-change-with-software-update
             # More info here: https://www.sqlite.org/pragma.html#pragma_schema_version
-            t_current_db_ver_it = get_schema_version(DbHelperM.__db_connection)
-            t_target_db_ver_it = max(upgrade_steps)
-            for upgrade_step_it in range(t_current_db_ver_it + 1, t_target_db_ver_it + 1):
+            current_db_ver_it = get_schema_version(DbHelperM.__db_connection)
+            target_db_ver_it = max(upgrade_steps)
+            for upgrade_step_it in range(current_db_ver_it + 1, target_db_ver_it + 1):
                 if upgrade_step_it in upgrade_steps:
                     upgrade_steps[upgrade_step_it](DbHelperM.__db_connection)
                     set_schema_version(DbHelperM.__db_connection, upgrade_step_it)
@@ -127,7 +127,7 @@ class DbHelperM(object):
 
 class DbSchemaM:
     class QuestionTable:
-        name = "journal"
+        name = "question"
 
         class Cols:
             id = "id"  # key
@@ -135,14 +135,14 @@ class DbSchemaM:
             question = "question"
             archived = "archived"
 
-    class DiaryTable:
-        name = "diary"
+    class DiaryEntryTable:
+        name = "diary_entry"
 
         class Cols:
             id = "id"  # key
             date_added = "date_added"
-            diary_text = "diary_text"
-            question_ref = "journal_ref"
+            diary_entry = "diary_entry"
+            question_ref = "question_ref"
 
     class ReminderTable:
         name = "reminder"
@@ -154,11 +154,11 @@ class DbSchemaM:
 
 
 class QuestionM:
-    def __init__(self, i_id_it: int, i_title_sg: str, i_question_str, i_archived_bl=False) -> None:
-        self.id_it = i_id_it
-        self.title_sg = i_title_sg
-        self.question_str = i_question_str
-        self.archived_bl = i_archived_bl
+    def __init__(self, i_id: int, i_title: str, i_question: str, i_archived: bool=False) -> None:
+        self.id_int = i_id
+        self.title_str = i_title
+        self.question_str = i_question
+        self.archived_bl = i_archived
 
     @staticmethod
     def add(i_title_str: str, i_question_str: str) -> None:
@@ -170,7 +170,6 @@ class QuestionM:
             + DbSchemaM.QuestionTable.Cols.question
             + ") VALUES (?, ?)", (i_title_str, i_question_str)
         )
-
         db_connection.commit()
 
     @staticmethod
@@ -190,7 +189,9 @@ class QuestionM:
     def get_all():
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
-        db_cursor_result = db_cursor.execute("SELECT * FROM " + DbSchemaM.QuestionTable.name)
+        db_cursor_result = db_cursor.execute(
+            "SELECT * FROM " + DbSchemaM.QuestionTable.name
+        )
         journal_db_te_list = db_cursor_result.fetchall()
         db_connection.commit()
 
@@ -209,10 +210,10 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute(
-            "INSERT INTO " + DbSchemaM.DiaryTable.name + "("
-            + DbSchemaM.DiaryTable.Cols.date_added + ", "
-            + DbSchemaM.DiaryTable.Cols.diary_text + ", "
-            + DbSchemaM.DiaryTable.Cols.question_ref
+            "INSERT INTO " + DbSchemaM.DiaryEntryTable.name + "("
+            + DbSchemaM.DiaryEntryTable.Cols.date_added + ", "
+            + DbSchemaM.DiaryEntryTable.Cols.diary_entry + ", "
+            + DbSchemaM.DiaryEntryTable.Cols.question_ref
             + ") VALUES (?, ?, ?)",
             (i_date_added_it, i_diary_text, i_journal_ref_it)
         )
@@ -225,9 +226,9 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute(
-            "UPDATE " + DbSchemaM.DiaryTable.name
-            + " SET " + DbSchemaM.DiaryTable.Cols.diary_text + " = ?"
-            + " WHERE " + DbSchemaM.DiaryTable.Cols.id + " = ?",
+            "UPDATE " + DbSchemaM.DiaryEntryTable.name
+            + " SET " + DbSchemaM.DiaryEntryTable.Cols.diary_entry + " = ?"
+            + " WHERE " + DbSchemaM.DiaryEntryTable.Cols.id + " = ?",
             (i_new_text_sg, str(i_id_it))
         )
         db_connection.commit()
@@ -237,9 +238,9 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute(
-            "UPDATE " + DbSchemaM.DiaryTable.name
-            + " SET " + DbSchemaM.DiaryTable.Cols.date_added + " = ?"
-            + " WHERE " + DbSchemaM.DiaryTable.Cols.id + " = ?",
+            "UPDATE " + DbSchemaM.DiaryEntryTable.name
+            + " SET " + DbSchemaM.DiaryEntryTable.Cols.date_added + " = ?"
+            + " WHERE " + DbSchemaM.DiaryEntryTable.Cols.id + " = ?",
             (str(i_new_time_it), str(i_id_it))
         )
         db_connection.commit()
@@ -249,8 +250,8 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor.execute(
-            "DELETE FROM " + DbSchemaM.DiaryTable.name
-            + " WHERE " + DbSchemaM.DiaryTable.Cols.id + "=" + str(i_id_it)
+            "DELETE FROM " + DbSchemaM.DiaryEntryTable.name
+            + " WHERE " + DbSchemaM.DiaryEntryTable.Cols.id + "=" + str(i_id_it)
         )
         db_connection.commit()
 
@@ -259,8 +260,8 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor_result = db_cursor.execute(
-            "SELECT * FROM " + DbSchemaM.DiaryTable.name + " WHERE "
-            + DbSchemaM.DiaryTable.Cols.id + "=" + str(i_id_it)
+            "SELECT * FROM " + DbSchemaM.DiaryEntryTable.name + " WHERE "
+            + DbSchemaM.DiaryEntryTable.Cols.id + "=" + str(i_id_it)
         )
         diary_db_te = db_cursor_result.fetchone()
         db_connection.commit()
@@ -276,8 +277,8 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor_result = db_cursor.execute(
-            "SELECT * FROM " + DbSchemaM.DiaryTable.name
-            + " ORDER BY " + DbSchemaM.DiaryTable.Cols.date_added + " " + t_direction_sg
+            "SELECT * FROM " + DbSchemaM.DiaryEntryTable.name
+            + " ORDER BY " + DbSchemaM.DiaryEntryTable.Cols.date_added + " " + t_direction_sg
         )
         diary_db_te_list = db_cursor_result.fetchall()
         for diary_db_te in diary_db_te_list:
@@ -293,12 +294,12 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor_result = db_cursor.execute(
-            "SELECT * FROM " + DbSchemaM.DiaryTable.name
-            + " WHERE " + DbSchemaM.DiaryTable.Cols.date_added + ">=" + str(i_start_of_month_as_unix_time_it)
-            + " AND " + DbSchemaM.DiaryTable.Cols.date_added + "<"
+            "SELECT * FROM " + DbSchemaM.DiaryEntryTable.name
+            + " WHERE " + DbSchemaM.DiaryEntryTable.Cols.date_added + ">=" + str(i_start_of_month_as_unix_time_it)
+            + " AND " + DbSchemaM.DiaryEntryTable.Cols.date_added + "<"
             + str(i_start_of_month_as_unix_time_it + 24 * 3600 * i_number_of_days_in_month_it)
-            + " AND " + DbSchemaM.DiaryTable.Cols.question_ref + "=" + str(i_question_id_it)
-            + " ORDER BY " + DbSchemaM.DiaryTable.Cols.date_added + " " + t_direction_sg
+            + " AND " + DbSchemaM.DiaryEntryTable.Cols.question_ref + "=" + str(i_question_id_it)
+            + " ORDER BY " + DbSchemaM.DiaryEntryTable.Cols.date_added + " " + t_direction_sg
         )
         diary_db_te_list = db_cursor_result.fetchall()
         for diary_db_te in diary_db_te_list:
@@ -322,9 +323,9 @@ class DiaryM:
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
         db_cursor_result = db_cursor.execute(
-            "SELECT * FROM " + DbSchemaM.DiaryTable.name
-            + " WHERE " + DbSchemaM.DiaryTable.Cols.date_added + ">=" + str(start_of_day_unixtime_it)
-            + " AND " + DbSchemaM.DiaryTable.Cols.date_added + "<" + str(start_of_day_unixtime_it + 24 * 3600)
+            "SELECT * FROM " + DbSchemaM.DiaryEntryTable.name
+            + " WHERE " + DbSchemaM.DiaryEntryTable.Cols.date_added + ">=" + str(start_of_day_unixtime_it)
+            + " AND " + DbSchemaM.DiaryEntryTable.Cols.date_added + "<" + str(start_of_day_unixtime_it + 24 * 3600)
         )
         diary_db_te_list = db_cursor_result.fetchall()
         for diary_db_te in diary_db_te_list:
@@ -369,7 +370,7 @@ class ReminderM:
         return ReminderM(*reminder_db_te)
 
     @staticmethod
-    def get_all():  # -TODO: Change to for just one month
+    def get_all():
         ret_reminder_list = []
         db_connection = DbHelperM.get_db_connection()
         db_cursor = db_connection.cursor()
@@ -400,16 +401,15 @@ def export_all():
         date_str = time_datetime.strftime("%Y-%m-%d")
         csv_writer.writerow((date_str, diary_item.diary_text))
 
+
 def backup_db_file():
     date_sg = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     new_file_name_sg = DATABASE_FILE_NAME + "_" + date_sg
     shutil.copyfile(DATABASE_FILE_NAME, new_file_name_sg)
     return
 
+
 def populate_db_with_test_data():
-
-    # add(i_date_added_it, i_diary_text, i_journal_ref_it):
-
     delta_day_it = 24 * 60 * 60
 
     QuestionM.add(
@@ -452,9 +452,13 @@ def populate_db_with_test_data():
         time.time() - 4 * delta_day_it,
         "Programming and working on the application. Using Python and Qt",
         QuestionSetupEnum.livelihood.value)
+    DiaryM.add(
+        time.time(),
+        "Lecture by Tara Brach - Namaste. Soul recognition: Seeing (1) the vulnerability in ourselves and others, (2) the goodness, and (3) the conciousness. The Story of Sir Gawain and ____",
+        QuestionSetupEnum.practice.value)
 
     ReminderM.add("Inter-being",
-        "All things in the universe inter-are, our suffernig and happiness, ___")
+        "All things in the universe inter-are, our suffering and happiness inter-is with the suffernig and happiness of others")
     ReminderM.add("No Mud, no lotus",
         "A lotus flower cannot grow on marble!")
 

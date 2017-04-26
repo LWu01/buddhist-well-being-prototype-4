@@ -95,7 +95,7 @@ class CompositeCentralWidget(QtWidgets.QWidget):
     def update_gui(self):
         if bwb.bwbglobal.active_view_viewenum == bwb.bwbglobal.ViewEnum.journal_monthly_view:
             active_journalm = bwb.model.QuestionM.get(bwb.bwbglobal.active_question_id_it)
-            self.diary_label.setText("<h3>" + active_journalm.title_sg + "</h3>")
+            self.diary_label.setText("<h3>" + active_journalm.title_str + "</h3>")
         else:
             self.diary_label.setText("<h3>Daily Overview</h3>")
         self.diary_widget.update_gui()
