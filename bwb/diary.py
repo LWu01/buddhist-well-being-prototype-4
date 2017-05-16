@@ -30,21 +30,38 @@ class DiaryListCompositeWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.vbox_l2 = QtWidgets.QVBoxLayout()
-        self.scroll_area_w3 = QtWidgets.QScrollArea()
-        self.scroll_area_w3.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.scroll_area_w3.setWidgetResizable(True)
-        self.scroll_list_widget_w4 = QtWidgets.QWidget()
+        '''
+        it's the layout for the diary part of the window. At the end of the init method there is this line
+        self.setLayout(self.vbox_l2)
+        which sets this vertical layout box ("vbox") as the layout for the diary part of the application
+        '''
+
+        self.vbox_l2 = QtWidgets.QVBoxLayout()#vbox_l2 creates layout for diary section of window
+        #this sections creates custom list widget with scrollbar
+        self.scroll_area_w3 = QtWidgets.QScrollArea()#creates scroll area
+        self.scroll_area_w3.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)#sets areas vertical scroll
+        self.scroll_area_w3.setWidgetResizable(True)#sets resizing
+
+        '''
+        
+        What i've tried to do here is to create a custom list widget with a scrollbar, and to do add the scrollbar i have added three widgets:
+        A QScrollArea - scroll_area_w3
+        A generic QWidget (needed so that the layout below can be held by something) - scroll_list_widget_w4
+        A QVBoxLayout - scroll_list_vbox_l5
+        
+        '''
+
+        self.scroll_list_widget_w4 = QtWidgets.QWidget()#creates widget for scroll area (to contain it)
         self.scroll_list_widget_w4.setObjectName(MY_WIDGET_NAME_STR)
         self.scroll_list_widget_w4.setStyleSheet("#" + MY_WIDGET_NAME_STR
              + "{" + "background-image:url(\"" + BACKGROUND_IMAGE_PATH_STR
              + "\"); background-position:center; background-repeat:no-repeat" + "}")
-        self.scroll_list_vbox_l5 = QtWidgets.QVBoxLayout()
+        self.scroll_list_vbox_l5 = QtWidgets.QVBoxLayout()#creates the layout vertical box for scroll area
 
-        self.scroll_list_widget_w4.setLayout(self.scroll_list_vbox_l5)
-        self.scroll_area_w3.setWidget(self.scroll_list_widget_w4)
-        self.vbox_l2.addWidget(self.scroll_area_w3)
-        self.setLayout(self.vbox_l2)
+        self.scroll_list_widget_w4.setLayout(self.scroll_list_vbox_l5)#sets generic widger container w4 with layout vbox_l5
+        self.scroll_area_w3.setWidget(self.scroll_list_widget_w4)#sets scroll widget area w3 to generic widget container w4
+        self.vbox_l2.addWidget(self.scroll_area_w3)#adds widget to diary section of window vbox_l2
+        self.setLayout(self.vbox_l2)#sets entire layout
 
     # The same function is used for all the "rows"
     def on_custom_label_mouse_pressed(self, i_qmouseevent, i_diary_id_it):
@@ -127,8 +144,11 @@ class DiaryListCompositeWidget(QtWidgets.QWidget):
         for diary_entry in diarym_list:
             label_text_sg = diary_entry.diary_text.strip()
 
+            '''
+            this has been moved to further down
             hbox_l6 = QtWidgets.QHBoxLayout()
             self.scroll_list_vbox_l5.addLayout(hbox_l6)
+            '''
 
             date_string_format_str = "%A"  # -weekday
             if diary_entry.date_added_it < time.time() - 60 * 60 * 24 * 7:
@@ -151,6 +171,17 @@ class DiaryListCompositeWidget(QtWidgets.QWidget):
                 left_qlabel = QtWidgets.QLabel(journal_sg)
             else:
                 pass
+
+            '''
+            hbox_l6 is the container for widgets:
+            It represents each row in the "custom listbox" and is used further down as such:
+            hbox_l6.addWidget(left_qlabel, stretch=1)
+            hbox_l6.addWidget(listitem_cqll, stretch=5)
+            hbox_l6.addWidget(QtWidgets.QLabel("one tag"), stretch=1)
+            '''
+
+            hbox_l6 = QtWidgets.QHBoxLayout()
+            self.scroll_list_vbox_l5.addLayout(hbox_l6)
 
             hbox_l6.addWidget(left_qlabel, stretch=1)
 

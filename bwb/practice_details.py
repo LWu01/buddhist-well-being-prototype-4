@@ -2,10 +2,14 @@ import sched
 import threading
 import time
 
+import logging
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 
 import bwb.model
+from bwb import model
+
+"""imported model, logging"""
 
 ID_NOT_SET = -1
 BUTTON_WIDTH_IT = 28
